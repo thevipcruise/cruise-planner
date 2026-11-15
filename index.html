@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>크루즈 플래너 · 크루즈마스터 스칼렛</title>
+<meta name="description" content="크루즈를 둘러보고 항공·호텔·기항지 투어까지 내 손으로 짜 보는 무료 크루즈 플래너. 예상 경비를 바로 확인하고, 완성한 플랜은 크루즈마스터 스칼렛에게 상담받으세요.">
+<meta property="og:title" content="우리 모임 크루즈, 직접 그려 보세요 · 스칼렛의 크루즈 플래너">
+<meta property="og:description" content="부부동반·동창·회사·동호회 크루즈. 일정·항공·호텔·기항지와 예상 경비까지 3분 만에.">
+<meta property="og:image" content="https://thevipcruise.github.io/cruise-planner/img/og.jpg">
+<meta property="og:url" content="https://thevipcruise.github.io/cruise-planner/">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#04465A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,500&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a href="#/" class="brand" aria-label="홈으로">
+    <span class="mark">ÉCLAT PASSAGE</span>
+    <span class="bname">스칼렛의 <b>크루즈 플래너</b></span>
+  </a>
+  <a class="top-cta" href="https://pf.kakao.com/_yrixbX/chat" target="_blank" rel="noopener">상담</a>
+</header>
+
+<main id="app" aria-live="polite"></main>
+
+<nav class="tabbar" aria-label="메뉴">
+  <a href="#/" data-tab="home"><i>⌂</i>홈</a>
+  <a href="#/explore" data-tab="explore"><i>⚓</i>둘러보기</a>
+  <a href="#/saved" data-tab="saved"><i>☰</i>내 플랜</a>
+  <a href="https://pf.kakao.com/_yrixbX/chat" target="_blank" rel="noopener"><i>✉</i>상담</a>
+</nav>
+
+<div id="toast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="data.js"></script>
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

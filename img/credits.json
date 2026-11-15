@@ -1,0 +1,104 @@
+{
+ "japan": {
+  "title": "Torii path with lantern at Fushimi Inari Taisha Shrine, Kyoto, Japan.jpg",
+  "creator": "Basile Morin",
+  "license": "CC BY-SA 4.0",
+  "src": "https://commons.wikimedia.org/wiki/File:Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine,_Kyoto,_Japan.jpg"
+ },
+ "china": {
+  "title": "Pudong Shanghai November 2017 HDR panorama.jpg",
+  "creator": "King of Hearts",
+  "license": "CC BY-SA 4.0",
+  "src": "https://commons.wikimedia.org/wiki/File:Pudong_Shanghai_November_2017_HDR_panorama.jpg"
+ },
+ "sea": {
+  "title": "Gardens by the Bay, Marina Bay, Singapur, 2023-08-19, DD 05-07 HDR.jpg",
+  "creator": "Diego Delso",
+  "license": "CC BY-SA 4.0",
+  "src": "https://commons.wikimedia.org/wiki/File:Gardens_by_the_Bay,_Marina_Bay,_Singapur,_2023-08-19,_DD_05-07_HDR.jpg"
+ },
+ "europe": {
+  "title": "1000 Three domes of Oia in Santorini Photo by Giles Laurent.jpg",
+  "creator": "Giles Laurent",
+  "license": "CC BY-SA 4.0",
+  "src": "https://commons.wikimedia.org/wiki/File:1000_Three_domes_of_Oia_in_Santorini_Photo_by_Giles_Laurent.jpg"
+ },
+ "usa": {
+  "title": "New York City (New York, USA), Statue of Liberty -- 2012 -- 6811.jpg",
+  "creator": "Dietmar Rabich",
+  "license": "CC BY-SA 4.0",
+  "src": "https://commons.wikimedia.org/wiki/File:New_York_City_(New_York,_USA),_Statue_of_Liberty_--_2012_--_6811.jpg"
+ },
+ "oceanview": {
+  "title": "Cabin # 3144",
+  "creator": "Prayitno / Thank you for (12 millions +) view",
+  "license": "CC BY 2.0",
+  "src": "https://www.flickr.com/photos/34128007@N04/4568709940",
+  "full": "https://live.staticflickr.com/4065/4568709940_c8f6a536e6_b.jpg"
+ },
+ "balcony": {
+  "title": "Cabin # 8328",
+  "creator": "Thank You (23 Millions+) views",
+  "license": "CC BY 2.0",
+  "src": "https://www.flickr.com/photos/34128007@N04/52410165553",
+  "full": "https://live.staticflickr.com/65535/52410165553_12df602f62_b.jpg"
+ },
+ "inside": {
+  "title": "Oasis of the Seas ship-cabin",
+  "creator": "www.wbayer.com - www.facebook.com/wbayercom",
+  "license": "CC CC0 1.0",
+  "src": "https://www.flickr.com/photos/76319087@N08/26838999139",
+  "full": "https://live.staticflickr.com/4543/26838999139_f148959990_b.jpg"
+ },
+ "suite": [
+  {
+   "title": "Sky Suite 1198 balcony aboard the Celebrity Equinox",
+   "creator": "Corvair Owner",
+   "license": "CC BY-SA 2.0",
+   "src": "https://www.flickr.com/photos/59398780@N00/6686286405",
+   "full": "https://live.staticflickr.com/7172/6686286405_ed9d2a71f2_b.jpg"
+  },
+  {
+   "title": "Sky Suite 1198 aboard the Celebrity Equinox",
+   "creator": "Corvair Owner",
+   "license": "CC BY-SA 2.0",
+   "src": "https://www.flickr.com/photos/59398780@N00/6686286703",
+   "full": "https://live.staticflickr.com/7003/6686286703_2c87f797a7_b.jpg"
+  }
+ ],
+ "taiwan": {
+  "title": "Jiufen at night lantern glow",
+  "creator": "Sunkenbean",
+  "license": "CC BY-SA 4.0"
+ },
+ "ship_sea": {
+  "title": "St. George's-Grenada (4)",
+  "creator": "Gail Frederick",
+  "license": "CC BY 2.0",
+  "src": "https://www.flickr.com/photos/71365354@N00/3363343283"
+ },
+ "ship_port": {
+  "title": "SPECTRUM OF THE SEAS 20190608-2 (cropped).jpg",
+  "creator": "カテキン",
+  "license": "CC BY-SA 4.0",
+  "src": "https://commons.wikimedia.org/wiki/File:SPECTRUM_OF_THE_SEAS_20190608-2_(cropped).jpg"
+ },
+ "deck_pool": {
+  "title": "MSC Cruises Lirica Cruise Ship Pool Deck 11 #medwayoflife",
+  "creator": "Tips For Travellers",
+  "license": "CC BY 2.0",
+  "src": "https://www.flickr.com/photos/8327374@N02/14542391834"
+ },
+ "bow": {
+  "title": "Vibe",
+  "creator": "davitydave",
+  "license": "CC BY 2.0",
+  "src": "https://www.flickr.com/photos/79781814@N00/6893145076"
+ },
+ "show": {
+  "title": "SHOW GIRLS (52722328436).jpg",
+  "creator": "Thank You (23 Millions+) views from Los Angeles, USA",
+  "license": "CC BY 2.0",
+  "src": "https://commons.wikimedia.org/wiki/File:SHOW_GIRLS_(52722328436).jpg"
+ }
+}
