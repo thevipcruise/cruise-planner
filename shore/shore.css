@@ -215,3 +215,34 @@ body.shore{word-break:keep-all;overflow-wrap:anywhere;padding-bottom:env(safe-ar
 }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 #map.picking .leaflet-marker-icon{pointer-events:none!important}
+
+/* 수용 인원 · 투어 · 이동수단 */
+.over{display:block;color:#B3261E;font-weight:700;font-size:12px;margin-top:2px}
+.times{grid-template-columns:1fr 1fr 84px}
+.capw{color:#B3261E;font-weight:700;margin-top:4px}
+.capline{display:block;margin-top:4px}
+.capline.over{opacity:1}
+.leg .link{margin-left:4px}
+.sh{font-size:17px;color:var(--deep);margin:6px 0 10px}
+.plist + .finds,.moves + .finds{margin-top:0}
+.tstops{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tstops .chip{padding:5px 10px;font-size:12.5px}
+.tnone{font-size:12.5px!important;color:var(--mute);margin-top:8px}
+.finds{background:var(--soft);border-radius:12px;padding:12px 14px;margin-bottom:22px}
+.finds b{font-size:13px;color:var(--deep)}
+.finds div{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.finds a{padding:7px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px;color:var(--teal);font-weight:700}
+.finds p{font-size:12px;color:var(--mute)}
+.moves{list-style:none;display:grid;gap:8px;margin-bottom:14px}
+.moves li{background:#fff;border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
+.moves li div{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:2px}
+.moves b{color:var(--deep);font-size:15px}
+.moves p{font-size:13.5px}
+.tabs button{font-size:14px;white-space:nowrap}
+.bmoveh{margin-top:6mm}
+.bmove{font-size:9.5pt;display:grid;gap:1.5mm;margin-bottom:3mm}
+.bmove div{display:flex;gap:3mm;break-inside:avoid}
+.bmove dt{flex:none;width:32mm;font-weight:700;color:var(--deep)}
+.bhelp{break-inside:auto}
+.taxi{break-inside:avoid}
+.bhelp ul{break-inside:avoid}
