@@ -211,3 +211,26 @@ const SHORE_CAP = {
  "nap-da-michele":80,"nap-brandi":150,"nap-nennella":100,"nap-stufe-di-nerone":200,"nap-terme-di-agnano":100,"nap-negombo-ischia":0,"nap-gambrinus":150,"nap-scaturchio":30,"nap-caffe-mexico":15,"nap-santa-chiara-cloister":0,"nap-villa-comunale":0,"nap-castel-sant-elmo":0,"nap-piazza-plebiscito":0,"nap-galleria-umberto":0,
  "jtr-naoussa":120,"jtr-luckys-souvlakis":10,"jtr-metaxi-mas":100,"jtr-palea-kameni-hot-springs":50,"jtr-cave-santorini-spa":6,"jtr-santo-wines":300,"jtr-galini-cafe":50,"jtr-volkan-on-the-rocks":80,"jtr-pelican-kipos":120,"jtr-kamari-beach":0,"jtr-caldera-promenade":0,"jtr-three-bells":0,"jtr-skaros-rock":0,"jtr-oia-castle":0
 };
+
+/* 비용 — 모두 어림값. r: 1단위당 원(환율 어림, 화면에서 고칠 수 있음) · taxi: [기본요금, km당] 현지 통화, 4명당 1대 */
+const SHORE_MONEY = { FUK:"JPY", NGS:"JPY", KOJ:"JPY", UKB:"JPY", OKA:"JPY", KEL:"TWD", SIN:"SGD", PEN:"MYR", HKT:"THB", BCN:"EUR", NAP:"EUR", JTR:"EUR" };
+const SHORE_FX = {
+ JPY:{ n:"엔", r:9.3, taxi:[700,400] }, TWD:{ n:"대만달러", r:44, taxi:[85,25] }, SGD:{ n:"싱가포르달러", r:1060, taxi:[6,1.3] },
+ MYR:{ n:"링깃", r:325, taxi:[5,1.5] }, THB:{ n:"바트", r:42, taxi:[150,40] }, EUR:{ n:"유로", r:1600, taxi:[5,1.5] }
+};
+const SHORE_TAXI = { JTR:[20,3] };
+/* 장소별 1인 비용 어림값 (현지 통화 · 식당은 한 끼, 웰니스는 기본 이용, 명소는 입장료 · 0 = 무료) */
+const SHORE_COST = {
+ "fuk-shinshin":1000,"fuk-mentaiju":2750,"fuk-rakutenchi":2500,"fuk-namiha":1100,"fuk-rakusuien":800,"fuk-teriha":1880,"fuk-suzukake":1250,"fuk-bimi":1000,"fuk-brasileiro":950,"fuk-ohori":0,"fuk-porttower":0,"fuk-kushida":0,"fuk-tochoji":50,"fuk-tower":1000,"fuk-dazaifu":0,
+ "ngs-shikairou":1350,"ngs-yossou":2000,"ngs-kozanro":1850,"ngs-fukunoyu":850,"ngs-michinoo":900,"ngs-arklandspa":1000,"ngs-tsuruchan":1300,"ngs-fujio":1050,"ngs-attic":900,"ngs-mizubenomori":0,"ngs-glover":620,"ngs-oura":1000,"ngs-meganebashi":0,"ngs-inasayama":1900,
+ "koj-ajimori":1500,"koj-kumasotei":2000,"koj-komurasaki":1200,"koj-saraku":1500,"koj-satsumanoyu":3500,"koj-kagomma":420,"koj-mujaki":750,"koj-starbucks-senganen":700,"koj-kakashiyokocho":800,"koj-nagisa-ashiyu":0,"koj-waterfront":0,"koj-shiroyama":0,"koj-senganen":1600,"koj-terukuni":0,
+ "ukb-steakland":2500,"ukb-mouriya":9000,"ukb-roshoki":600,"ukb-kinnoyu":650,"ukb-ren":2700,"ukb-manyo":3025,"ukb-nishimura":1200,"ukb-freundlieb":1500,"ukb-starbucks-kitano":700,"ukb-meriken":0,"ukb-herb":2500,"ukb-sorakuen":300,"ukb-porttower":1000,"ukb-kazamidori":500,
+ "oka-yunangi":2500,"oka-jacks":2500,"oka-shurisoba":900,"oka-makishi":3000,"oka-ryujin":2000,"oka-rikkarikka":1250,"oka-kariisanfan":1500,"oka-uchinachaya":1200,"oka-blueseal":600,"oka-madama":1000,"oka-naminoue-beach":0,"oka-fukushuen":200,"oka-shurijo":1000,"oka-naminouegu":0,"oka-yachimun":0,
+ "kel-miaokou":300,"kel-lihu":150,"kel-agan":60,"kel-jiufen-teahouse":600,"kel-jinshan-onsen":300,"kel-beitou-longnice":150,"kel-amei":300,"kel-tuman":200,"kel-siidcha":500,"kel-zhongzheng":0,"kel-heping":120,"kel-chaojing":0,"kel-zhengbin":0,"kel-jiufen-street":0,"kel-yehliu":120,
+ "sin-tiantian":8,"sin-songfa":15,"sin-laupasat":20,"sin-yunomori":45,"sin-fs-peranakan":300,"sin-teachapter":48,"sin-yakun":8,"sin-twg":45,"sin-chinmeechin":10,"sin-gardens":46,"sin-barrage":0,"sin-merlion":0,"sin-skypark":31,"sin-sultan":0,
+ "pen-hameediyah":25,"pen-teksen":50,"pen-chendul":8,"pen-chi-spa":400,"pen-spicegarden":35,"pen-tenyee":30,"pen-chinahouse":40,"pen-tohsoon":12,"pen-eo-tea":110,"pen-esplanade":0,"pen-botanic":0,"pen-bluemansion":25,"pen-armenian":0,"pen-chewjetty":0,"pen-kekloksi":4,
+ "hkt-no6":300,"hkt-raya":450,"hkt-onechun":400,"hkt-kradangga":1000,"hkt-tarntara":1500,"hkt-deflora":1500,"hkt-kopitiam":250,"hkt-torrys":150,"hkt-blueharbour":120,"hkt-patongbeach":0,"hkt-karonbeach":0,"hkt-bigbuddha":0,"hkt-karonview":0,"hkt-rommanee":0,
+ "bcn-can-culleretes":30,"bcn-7-portes":45,"bcn-can-sole":45,"bcn-aire-ancient-baths":72,"bcn-rituels-dorient":60,"bcn-flotarium":42,"bcn-els-4-gats":12,"bcn-granja-viader":8,"bcn-cafe-de-lopera":8,"bcn-parc-ciutadella":0,"bcn-barceloneta-beach":0,"bcn-mirador-colom":7.5,"bcn-sagrada-familia":26,"bcn-bunkers-carmel":0,
+ "nap-da-michele":8,"nap-brandi":20,"nap-nennella":18,"nap-stufe-di-nerone":35,"nap-terme-di-agnano":30,"nap-negombo-ischia":40,"nap-gambrinus":8,"nap-scaturchio":5,"nap-caffe-mexico":1.5,"nap-santa-chiara-cloister":7,"nap-villa-comunale":0,"nap-castel-sant-elmo":5,"nap-piazza-plebiscito":0,"nap-galleria-umberto":0,
+ "jtr-naoussa":35,"jtr-luckys-souvlakis":6,"jtr-metaxi-mas":35,"jtr-palea-kameni-hot-springs":35,"jtr-cave-santorini-spa":90,"jtr-santo-wines":28,"jtr-galini-cafe":12,"jtr-volkan-on-the-rocks":12,"jtr-pelican-kipos":15,"jtr-kamari-beach":0,"jtr-caldera-promenade":0,"jtr-three-bells":0,"jtr-skaros-rock":0,"jtr-oia-castle":0
+};

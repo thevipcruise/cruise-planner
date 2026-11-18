@@ -3,13 +3,15 @@
 "use strict";
 
 const CHAT = "https://pf.kakao.com/_yrixbX/chat";
+/* 브랜드 색(바다 청록 · 선셋 오렌지 · 골드 · 네이비)만 씀 — c 바탕, k 바탕 위 글자, t 흰 바탕 위 글자 */
 const CATS = {
-  food:  { n:"식당",        g:"식", c:"#D9541E" },
-  well:  { n:"웰니스·뷰티", g:"웰", c:"#7A4FA3" },
-  cafe:  { n:"카페",        g:"카", c:"#8A5A2B" },
-  rest:  { n:"휴식",        g:"쉼", c:"#1F8A5B" },
-  photo: { n:"포토 스팟",   g:"포", c:"#C2255C" }
+  food:  { n:"식당",        g:"식", c:"#F37021", k:"#FFFFFF", t:"#C2410C" },
+  well:  { n:"웰니스·뷰티", g:"웰", c:"#0B8A96", k:"#FFFFFF", t:"#066270" },
+  cafe:  { n:"카페",        g:"카", c:"#E2B656", k:"#13203F", t:"#8A6410" },
+  rest:  { n:"휴식",        g:"쉼", c:"#38C4C4", k:"#13203F", t:"#066270" },
+  photo: { n:"포토 스팟",   g:"포", c:"#13203F", k:"#FFEEB0", t:"#13203F" }
 };
+const cv = cat => { const c = CATS[cat]; return `--c:${c.c};--k:${c.k};--t:${c.t}`; };
 const KEY = "shore_planner_v1";
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
@@ -17,7 +19,7 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&am
 /* ---------- 저장 ---------- */
 function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){} }
-let db = Object.assign({ cur:null, plans:{}, custom:{}, ports:{}, info:{}, caps:{} }, load() || {});
+let db = Object.assign({ cur:null, plans:{}, custom:{}, ports:{}, info:{}, caps:{}, costs:{}, fx:{}, photos:{}, pc:{} }, load() || {});
 let tab = "places", catFilter = "all", picking = null;
 
 const allPorts = () => Object.assign({}, SHORE.ports, db.ports);
@@ -39,6 +41,23 @@ function capOf(p){
 function capText(p){ const c = capOf(p); return !c ? "확인 필요" : c.n === 0 ? "제한 없음 (야외·공공장소)" : "약 " + c.n + "명 " + (c.mine ? "(직접 확인)" : "(어림)"); }
 const pax = () => plan().pax || 2;
 const capOver = p => { const c = capOf(p); return !!c && c.n > 0 && pax() > c.n; };
+/* 비용: 장소는 현지 통화 1인 금액, 교통은 차로 가는 구간마다 택시(4명당 1대) 요금을 어림 */
+function money(){
+  const c = typeof SHORE_MONEY !== "undefined" && SHORE_MONEY[db.cur]; if(!c) return { code:"KRW", n:"원", r:1, taxi:null };
+  const f = SHORE_FX[c]; return { code:c, n:f.n, r: db.fx[c] || f.r, taxi: SHORE_TAXI[db.cur] || f.taxi };
+}
+function costOf(p){ const o = db.costs[p.id]; if(o != null) return { v:o, mine:true }; if(p.cost != null) return { v:p.cost, mine:true }; const c = typeof SHORE_COST !== "undefined" ? SHORE_COST[p.id] : null; return c == null ? null : { v:c }; }
+const wonR = v => Math.round(v / 100) * 100;
+const won = v => wonR(v).toLocaleString() + "원";
+function costText(p){ const c = costOf(p), m = money(); if(!c) return "확인 필요"; if(c.v === 0) return "무료"; return (m.code === "KRW" ? "약 " + won(c.v) : "약 " + c.v.toLocaleString() + m.n + " (" + won(c.v * m.r) + ")") + (c.mine ? " · 직접 확인" : " · 어림"); }
+function costs(){
+  const pl = plan(), s = schedule(), m = money(), n = pax(), cars = Math.ceil(n / 4);
+  let place = 0, unknown = 0, taxi = 0, rides = 0;
+  s.rows.forEach(r => { const c = costOf(r.p); if(c) place += c.v * m.r; else unknown++; });
+  if(m.taxi && pl.stops.length) s.rows.map(r => r.leg).concat([s.backLeg]).forEach(l => { if(l.mode === "차"){ taxi += (m.taxi[0] + m.taxi[1] * l.km) * m.r * cars; rides++; } });
+  place = wonR(place); const trans = wonR(pl.tcost != null ? pl.tcost : taxi);
+  return { place, trans, auto:pl.tcost == null, rides, cars, unknown, per: place + trans / n, total: place * n + trans, n, m };
+}
 const inPlan = id => plan().stops.some(s => s.id === id);
 
 /* ---------- 시간·거리 ---------- */
@@ -104,7 +123,7 @@ const ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_
 function pin(p, n){
   const c = CATS[p.cat];
   return L.divIcon({ className:"", iconSize:[32, 32], iconAnchor:[16, 16], popupAnchor:[0, -14],
-    html:`<div class="pin${n ? " sel" : ""}" style="--c:${c.c}">${n || c.g}</div>` });
+    html:`<div class="pin${n ? " sel" : ""}" style="${cv(p.cat)}">${n || c.g}</div>` });
 }
 const anchorIcon = () => L.divIcon({ className:"", iconSize:[36, 36], iconAnchor:[18, 18], popupAnchor:[0, -16], html:'<div class="pin term">⚓</div>' });
 function initMap(){
@@ -114,7 +133,7 @@ function initMap(){
   map.on("click", e => { if(picking){ const cb = picking; stopPick(); cb([+e.latlng.lat.toFixed(5), +e.latlng.lng.toFixed(5)]); } });
 }
 function popupHtml(p){
-  return `<div class="pop"><span class="cat" style="--c:${CATS[p.cat].c}">${CATS[p.cat].n}</span><b>${esc(p.n)}</b>
+  return `<div class="pop"><span class="cat" style="${cv(p.cat)}">${CATS[p.cat].n}</span><b>${esc(p.n)}</b>
     <p>${esc(p.d || "")}</p><div class="popacts"><button type="button" data-act="toggle" data-id="${esc(p.id)}">${inPlan(p.id) ? "동선에서 빼기" : "동선에 담기"}</button><button type="button" data-act="show" data-id="${esc(p.id)}">자세히</button></div></div>`;
 }
 function drawMap(fit){
@@ -190,6 +209,61 @@ function renderPorts(){
     ${db.ports[db.cur] ? `<div><button type="button" class="link danger" data-act="del-port">이 기항지 지우기</button></div>` : ""}</div>`;
 }
 
+/* ---------- 사진: 내가 넣은 사진 > 위키백과 대표 사진 > 위키미디어 공용 검색 ---------- */
+function photoOf(p){ if(db.photos[p.id]) return { u:db.photos[p.id], mine:true }; const c = db.pc[p.id]; return c && c.u ? c : null; }
+function phHtml(p){
+  const f = photoOf(p), id = esc(p.id);
+  const cap = f ? (f.mine ? "내가 넣은 사진" : `<a href="${esc(f.l)}" target="_blank" rel="noopener">사진: ${esc(f.c)}</a>`) : (db.pc[p.id] || p.custom ? "사진이 아직 없어요" : "사진 찾는 중…");
+  return `<figure class="ph${f ? "" : " none"}" data-pid="${id}" style="${cv(p.cat)}">${f ? `<img src="${esc(f.u)}" alt="${esc(p.n)}" loading="lazy">` : `<span>${CATS[p.cat].g}</span>`}
+    <figcaption><span>${cap}</span><span><label class="link">${f && f.mine ? "바꾸기" : "내 사진 넣기"}<input type="file" accept="image/*" data-photo="${id}" hidden></label>${f && f.mine ? `<button type="button" class="link" data-act="photo-del" data-id="${id}">빼기</button>` : ""}</span></figcaption></figure>`;
+}
+const latin = s => (String(s).match(/[A-Za-z][A-Za-z0-9'&.\- ]{3,}/g) || []).join(" ").replace(/\s+/g, " ").trim();
+const cjk = s => String(s).match(/[\u3040-\u30ff\u4e00-\u9fff]{2,}/g) || [];
+/* 엉뚱한 사진을 막기 위해, 찾은 제목이 장소 이름과 낱말을 하나 이상 나눠 가질 때만 씀 */
+function related(title, q){
+  const norm = x => x.toLowerCase().replace(/^file:/, "").replace(/\.(jpe?g|png|webp|tiff?)$/, "").replace(/[^a-z0-9\u3040-\u30ff\u4e00-\u9fff]+/g, " ").trim();
+  const t = norm(title), qq = norm(q), city = norm(port().q || "").split(" ");
+  const skip = ["restaurant", "cafe", "coffee", "park", "hotel", "temple", "shrine", "beach", "street", "port", "spa", "onsen", "main", "store", "honten", "view", "viewpoint", "garden", "tower", "tea", "house"];
+  if(t.split(" ").some(w => w.length >= 4 && !city.includes(w) && !skip.includes(w) && qq.split(" ").includes(w))) return true;
+  return cjk(t).some(a => cjk(qq).some(b => a.includes(b.slice(0, 3)) || b.includes(a.slice(0, 3))));
+}
+async function wapi(host, params){ const r = await fetch("https://" + host + "/w/api.php?origin=*&format=json&" + new URLSearchParams(params)); if(!r.ok) throw new Error("wiki"); return r.json(); }
+const hits = j => Object.values((j.query || {}).pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0));
+async function findPhoto(p, po){
+  const lat = latin(p.en || ""), q = lat || p.en || ""; if(!q) return null;
+  const lang = lat ? "en" : ({ JPY:"ja", TWD:"zh" }[typeof SHORE_MONEY !== "undefined" && SHORE_MONEY[db.cur]] || "en");
+  let j = await wapi(lang + ".wikipedia.org", { action:"query", generator:"search", gsrsearch:q, gsrlimit:3, prop:"pageimages", piprop:"thumbnail|name", pithumbsize:640, pilicense:"free" });
+  for(const pg of hits(j)) if(pg.thumbnail && pg.pageimage && related(pg.title, q)) return { u:pg.thumbnail.source, c:"위키미디어 공용", l:"https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(pg.pageimage) };
+  j = await wapi("commons.wikimedia.org", { action:"query", generator:"search", gsrnamespace:6, gsrsearch:q + " filetype:bitmap", gsrlimit:4, prop:"imageinfo", iiprop:"url|extmetadata", iiurlwidth:640 });
+  for(const pg of hits(j)){ const ii = (pg.imageinfo || [])[0]; if(!ii || !ii.thumburl || !related(pg.title, q)) continue;
+    const md = ii.extmetadata || {}, artist = md.Artist ? String(md.Artist.value).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 40) : "", lic = md.LicenseShortName ? md.LicenseShortName.value : "";
+    return { u:ii.thumburl, c:[artist, lic, "위키미디어 공용"].filter(Boolean).join(" · "), l:ii.descriptionurl };
+  }
+  return null;
+}
+const photoQ = []; let photoBusy = false;
+async function pumpPhotos(){
+  if(photoBusy) return; photoBusy = true;
+  while(photoQ.length){
+    const id = photoQ.shift(), cur = db.cur, p = placeById(id); if(!p || db.pc[id] || db.photos[id]) continue;
+    try{ const f = await findPhoto(p); if(db.cur !== cur) continue; db.pc[id] = f || { none:Date.now() }; save();
+      const el = document.querySelector('.ph[data-pid="' + CSS.escape(id) + '"]'); if(el) el.outerHTML = phHtml(p);
+    }catch(e){ photoQ.length = 0; document.querySelectorAll(".ph.none figcaption > span:first-child").forEach(x => { if(x.textContent === "사진 찾는 중…") x.textContent = "지금은 사진을 불러올 수 없어요"; }); }
+    await new Promise(r => setTimeout(r, 200));
+  }
+  photoBusy = false;
+}
+const photoIO = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ photoIO.unobserve(e.target); const id = e.target.dataset.pid; if(!photoQ.includes(id)) photoQ.push(id); pumpPhotos(); } }), { rootMargin:"300px" }) : null;
+function watchPhotos(){ if(!photoIO) return; document.querySelectorAll(".ph.none[data-pid]").forEach(el => { const p = placeById(el.dataset.pid); if(p && !p.custom && !db.pc[p.id]) photoIO.observe(el); }); }
+function setPhoto(id, file){
+  const img = new Image(), url = URL.createObjectURL(file);
+  img.onload = () => { const k = Math.min(1, 720 / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); db.photos[id] = c.toDataURL("image/jpeg", .8);
+    try{ localStorage.setItem(KEY, JSON.stringify(db)); toast("사진을 넣었어요."); }catch(e){ delete db.photos[id]; toast("저장 공간이 부족해요. 다른 사진을 몇 장 빼 주세요."); } refresh(); };
+  img.onerror = () => { URL.revokeObjectURL(url); toast("이 파일은 사진으로 열 수 없어요."); };
+  img.src = url;
+}
+
 /* ---------- 화면: 장소 ---------- */
 function contactHtml(p){
   const tel = p.tel ? `<span class="tel"><a href="tel:${esc(p.tel.replace(/[^+\d]/g, ""))}">☎ ${esc(p.tel)}</a><button type="button" class="link" data-act="copy" data-text="${esc(p.tel)}">복사</button></span>` : `<span class="tel none">전화번호는 구글 지도에서 확인</span>`;
@@ -198,12 +272,13 @@ function contactHtml(p){
 function metaHtml(p){
   const rows = [["머무는 시간", "약 " + dur(p.stay || 60)], ["영업", p.hours], ["예산", p.price], ["예약", p.book], ["주소", p.addr]].filter(r => r[1]);
   return `<dl class="meta">${rows.map(r => `<div><dt>${r[0]}</dt><dd>${esc(r[1])}</dd></div>`).join("")}
+    <div><dt>1인 비용</dt><dd>${esc(costText(p))} <button type="button" class="link" data-act="cap" data-id="${esc(p.id)}">고치기</button></dd></div>
     <div><dt>수용 인원</dt><dd>${esc(capText(p))} <button type="button" class="link" data-act="cap" data-id="${esc(p.id)}">고치기</button>${capOver(p) ? `<span class="over">일행 ${pax()}명은 한 번에 어려워요. 나눠 들어가거나 미리 문의하세요.</span>` : ""}</dd></div></dl>`;
 }
 function placeCard(p){
   const e = est(port().terminal.ll, p.ll), on = inPlan(p.id), c = CATS[p.cat];
-  return `<article class="pcard${on ? " on" : ""}" id="pc-${esc(p.id)}">
-    <div class="phead"><span class="cat" style="--c:${c.c}">${c.n}</span>${p.far ? '<span class="tag far">먼 거리</span>' : ""}${p.custom ? '<span class="tag">내가 추가</span>' : (p.verified === false ? '<span class="tag">방문 전 확인</span>' : "")}${p.llApprox ? '<span class="tag">위치 어림</span>' : ""}
+  return `<article class="pcard${on ? " on" : ""}" id="pc-${esc(p.id)}">${phHtml(p)}
+    <div class="phead"><span class="cat" style="${cv(p.cat)}">${c.n}</span>${p.far ? '<span class="tag far">먼 거리</span>' : ""}${p.custom ? '<span class="tag">내가 추가</span>' : (p.verified === false ? '<span class="tag">방문 전 확인</span>' : "")}${p.llApprox ? '<span class="tag">위치 어림</span>' : ""}
       <span class="dist">터미널에서 ${e.mode} 약 ${dur(e.min)}</span></div>
     <h3>${esc(p.n)}</h3>${p.en ? `<div class="en">${esc(p.en)}</div>` : ""}
     ${p.d ? `<p>${esc(p.d)}</p>` : ""}${p.pick ? `<p class="pick">${esc(p.pick)}</p>` : ""}
@@ -260,13 +335,22 @@ function paneroute(){
   const msg = s.slack < 0 ? `귀선 마감보다 ${dur(-s.slack)} 늦어요. 장소를 줄이거나 머무는 시간을 줄여 주세요.`
     : s.slack < 30 ? `귀선 마감까지 여유가 ${dur(s.slack)}뿐이에요. 30분 이상 남기는 걸 권해요.` : `귀선 마감까지 ${dur(s.slack)} 여유가 있어요.`;
   return times + `<div class="sum ${state}"><div class="nums"><div><small>장소</small><b>${pl.stops.length}곳</b></div><div><small>머무는 시간</small><b>${dur(s.stay)}</b></div><div><small>이동</small><b>${dur(s.travel)}</b></div><div><small>터미널 도착</small><b>${toHM(s.back)}</b></div></div><p>${msg}</p>${s.rows.some(r => capOver(r.p)) ? `<p class="capw">일행 ${pax()}명이 한 번에 들어가기 어려운 곳이 ${s.rows.filter(r => capOver(r.p)).length}곳 있어요. 아래 표시를 확인하세요.</p>` : ""}</div>
+    ${(() => { const c = costs(), m = c.m; return `<div class="cost"><h3>예상 경비 <small>어림값</small></h3>
+      <dl><div><dt>장소 이용·식비</dt><dd>1인 ${won(c.place)}</dd></div>
+        <div><dt>교통비 <small>${c.auto ? (m.taxi ? (c.rides ? `택시 ${c.cars}대 × ${c.rides}구간` : "모두 걸어서") : "직접 입력해 주세요") : "직접 입력"}</small></dt><dd>일행 전체 ${won(c.trans)}</dd></div>
+        <div class="tot"><dt>1인 합계</dt><dd>${won(c.per)}</dd></div><div class="tot"><dt>일행 ${c.n}명 합계</dt><dd>${won(c.total)}</dd></div></dl>
+      ${c.unknown ? `<p>비용을 모르는 장소 ${c.unknown}곳은 빠져 있어요. 장소의 ‘고치기’에서 넣을 수 있어요.</p>` : ""}
+      <div class="costin">${m.code !== "KRW" ? `<label>환율: 1${m.n} =<input type="number" id="fx" step="any" min="0" value="${m.r}">원</label>` : ""}
+        <label>교통비 직접 입력(일행 전체, 원)<input type="number" id="tcost" min="0" step="1000" value="${pl.tcost != null ? pl.tcost : ""}" placeholder="비우면 자동 어림"></label></div>
+      <p>식당은 한 끼, 웰니스는 기본 이용, 명소는 입장료 기준이에요. 쇼핑·선사 투어 요금은 들어 있지 않아요.</p></div>`; })()}
     <div class="rtools"><button type="button" class="mini" data-act="opt">가까운 순서로 정리</button><button type="button" class="mini" data-act="auto">추천 코스로 다시</button><button type="button" class="mini" data-act="clear">모두 비우기</button></div>
     <ol class="rt">
       <li class="node term"><span class="tm">${toHM(toMin(pl.t0))}</span><div><b>${esc(po.terminal.n)}</b><small>하선 · 출발</small></div></li>
-      ${s.rows.map((r, i) => legHtml(r.leg, r.from, r.p.id) + `<li class="node" style="--c:${CATS[r.p.cat].c}"><span class="tm">${toHM(r.arr)}</span><span class="no">${i + 1}</span>
+      ${s.rows.map((r, i) => legHtml(r.leg, r.from, r.p.id) + `<li class="node" style="${cv(r.p.cat)}"><span class="tm">${toHM(r.arr)}</span><span class="no">${i + 1}</span>
         <div><b>${esc(r.p.n)}</b><small>${CATS[r.p.cat].n}${r.p.hours ? " · " + esc(r.p.hours) : ""}</small>
           <div class="ctl"><span class="stepper sm"><button type="button" data-act="stay" data-id="${esc(r.p.id)}" data-d="-15" aria-label="머무는 시간 15분 줄이기">−</button><em>${dur(r.stay)} 머묾</em><button type="button" data-act="stay" data-id="${esc(r.p.id)}" data-d="15" aria-label="머무는 시간 15분 늘리기">＋</button></span>
             <span class="mv"><button type="button" data-act="up" data-id="${esc(r.p.id)}"${i === 0 ? " disabled" : ""} aria-label="앞으로">↑</button><button type="button" data-act="down" data-id="${esc(r.p.id)}"${i === s.rows.length - 1 ? " disabled" : ""} aria-label="뒤로">↓</button><button type="button" data-act="focus" data-id="${esc(r.p.id)}" aria-label="지도에서 보기">지도</button><button type="button" data-act="toggle" data-id="${esc(r.p.id)}" aria-label="빼기">빼기</button></span></div>
+          <small class="capline">1인 ${esc(costText(r.p))}</small>
           <small class="capline${capOver(r.p) ? " over" : ""}">수용 ${esc(capText(r.p))}${capOver(r.p) ? " · 일행 " + pax() + "명은 나눠 입장·사전 문의" : ""}</small>
           ${r.p.tel ? `<a class="rtel" href="tel:${esc(r.p.tel.replace(/[^+\d]/g, ""))}">☎ ${esc(r.p.tel)}</a>` : ""}</div></li>`).join("")}
       ${legHtml(s.backLeg, s.backFrom, "T")}
@@ -285,20 +369,22 @@ function panebook(){
   return `<div class="bookform"><p class="lead">표지와 연락처에 들어갈 내용을 적어 주세요. 비워 둔 칸은 책자에서 빠져요.</p>
     ${INFO.map(([k, l, ph]) => `<label>${l}<input type="text" id="bi-${k}" data-info="${k}" value="${esc(i[k] || "")}" placeholder="${esc(ph)}"></label>`).join("")}
     <label class="chk"><input type="checkbox" id="bi-qr" data-info="qr"${i.qr === false ? "" : " checked"}> 장소마다 구글 지도 QR 넣기</label>
+    <label class="chk"><input type="checkbox" id="bi-photo" data-info="photo"${i.photo === false ? "" : " checked"}> 장소 사진 넣기</label>
+    <label class="chk"><input type="checkbox" id="bi-cost" data-info="cost"${i.cost === false ? "" : " checked"}> 예상 경비 넣기</label>
     ${n ? `<button type="button" class="btn pri block" data-act="book">안내 책자 보기 · 인쇄</button><p class="hint">인쇄 창에서 ‘PDF로 저장’을 고르면 파일로 보관하거나 카톡으로 보낼 수 있어요.</p>`
         : `<div class="empty"><b>동선을 먼저 짜 주세요</b><p>책자에는 내 동선에 담은 장소가 순서대로 들어가요.</p><button type="button" class="btn out block" data-tabgo="places">장소 고르러 가기</button></div>`}</div>`;
 }
 function qrSvg(url){ try{ const q = qrcode(0, "M"); q.addData(url); q.make(); return q.createSvgTag({ cellSize:2, margin:0, scalable:true }); }catch(e){ return ""; } }
 function openBook(){
   const po = port(), pl = plan(), s = schedule(), i = db.info, title = i.title || po.n + " 기항지 투어 안내";
-  const facts = [["날짜", i.date], ["배", i.ship], ["모이는 곳", i.meet], ["인솔자", [i.guide, i.gtel].filter(Boolean).join(" · ")]].filter(f => f[1]);
+  const facts = [["날짜", i.date], ["배", i.ship], ["모이는 곳", i.meet], ["인솔자", [i.guide, i.gtel].filter(Boolean).join(" · ")], ["예상 경비", i.cost === false ? "" : "1인 약 " + won(costs().per) + " (일행 " + pax() + "명 기준, 어림)"]].filter(f => f[1]);
   const tl = [`<tr class="t"><td>${toHM(toMin(pl.t0))}</td><td>⚓</td><td><b>${esc(po.terminal.n)}</b> 하선 · 출발</td></tr>`]
-    .concat(s.rows.map((r, k) => `<tr class="bmv"><td></td><td></td><td>${r.leg.mode} 약 ${dur(r.leg.min)}</td></tr><tr><td>${toHM(r.arr)}</td><td><span class="no" style="--c:${CATS[r.p.cat].c}">${k + 1}</span></td><td><b>${esc(r.p.n)}</b> <em>${CATS[r.p.cat].n} · ${dur(r.stay)}</em></td></tr>`))
+    .concat(s.rows.map((r, k) => `<tr class="bmv"><td></td><td></td><td>${r.leg.mode} 약 ${dur(r.leg.min)}</td></tr><tr><td>${toHM(r.arr)}</td><td><span class="no" style="${cv(r.p.cat)}">${k + 1}</span></td><td><b>${esc(r.p.n)}</b> <em>${CATS[r.p.cat].n} · ${dur(r.stay)}</em></td></tr>`))
     .concat([`<tr class="bmv"><td></td><td></td><td>${s.backLeg.mode} 약 ${dur(s.backLeg.min)}</td></tr><tr class="t"><td>${toHM(s.back)}</td><td>⚓</td><td><b>${esc(po.terminal.n)}</b> 귀선</td></tr>`]).join("");
-  const cards = s.rows.map((r, k) => { const p = r.p, rows = [["전화", p.tel], ["수용", capText(p)], ["주소", p.addr], ["영업", p.hours], ["예산", p.price], ["예약", p.book], ["홈페이지", p.web && p.web.replace(/^https?:\/\//, "").replace(/\/$/, "")]].filter(x => x[1]);
-    return `<section class="bcard"><div class="bno" style="--c:${CATS[p.cat].c}">${k + 1}</div><div class="bmain"><div class="btime">${toHM(r.arr)} 도착 · ${dur(r.stay)} · ${CATS[p.cat].n}</div><h3>${esc(p.n)}</h3>${p.en ? `<div class="en">${esc(p.en)}</div>` : ""}
+  const cards = s.rows.map((r, k) => { const p = r.p, ph = i.photo === false ? null : photoOf(p), rows = [["전화", p.tel], ["비용", i.cost === false ? "" : "1인 " + costText(p)], ["수용", capText(p)], ["주소", p.addr], ["영업", p.hours], ["예산", p.price], ["예약", p.book], ["홈페이지", p.web && p.web.replace(/^https?:\/\//, "").replace(/\/$/, "")]].filter(x => x[1]);
+    return `<section class="bcard"><div class="bno" style="${cv(p.cat)}">${k + 1}</div><div class="bmain"><div class="btime">${toHM(r.arr)} 도착 · ${dur(r.stay)} · ${CATS[p.cat].n}</div><h3>${esc(p.n)}</h3>${p.en ? `<div class="en">${esc(p.en)}</div>` : ""}
       ${p.d ? `<p>${esc(p.d)}</p>` : ""}${p.pick ? `<p class="pick">${esc(p.pick)}</p>` : ""}<dl>${rows.map(x => `<div><dt>${x[0]}</dt><dd>${esc(x[1])}</dd></div>`).join("")}</dl></div>
-      ${i.qr === false ? "" : `<div class="bqr">${qrSvg(gq(p))}<small>구글 지도</small></div>`}</section>`; }).join("");
+      ${ph || i.qr !== false ? `<div class="bside">${ph ? `<img src="${esc(ph.u)}" alt=""><small>${ph.mine ? "" : "사진: " + esc(ph.c)}</small>` : ""}${i.qr === false ? "" : `<div class="bqr">${qrSvg(gq(p))}<small>구글 지도</small></div>`}</div>` : ""}</section>`; }).join("");
   $("#book").innerHTML = `<div class="bbar"><button type="button" class="btn out" data-act="book-close">← 돌아가기</button><button type="button" class="btn pri" data-act="print">인쇄 · PDF로 저장</button></div>
   <div class="sheets">
     <div class="page cover"><div class="mark">ÉCLAT PASSAGE</div><div class="ceyebrow">Shore Excursion Guide</div><h1>${esc(title)}</h1>
@@ -316,6 +402,7 @@ function openBook(){
           <li>선내 카드(승선 카드)와 여권 사본, 현지 통화${po.cur ? "(" + esc(po.cur) + ")" : ""}를 챙기세요.</li>
           ${po.emergency ? `<li>현지 긴급 전화: ${esc(po.emergency)}</li>` : ""}
           ${i.guide || i.gtel ? `<li>인솔자: ${esc([i.guide, i.gtel].filter(Boolean).join(" · "))}</li>` : ""}
+          ${i.cost === false ? "" : (() => { const c = costs(); return `<li>예상 경비(어림): 장소 이용·식비 1인 ${won(c.place)} + 교통비 일행 전체 ${won(c.trans)} → 1인 약 <b>${won(c.per)}</b>, 일행 합계 약 ${won(c.total)}${c.m.code !== "KRW" ? " · 1" + c.m.n + " = " + c.m.r + "원 기준" : ""}</li>`; })()}
           <li>일행 ${pax()}명 기준이에요. 수용 인원은 어림값이니 단체는 미리 전화로 확인하세요.</li>
           <li>선사 항구 대리점 연락처는 그날 선내 신문에 적혀 있어요. 사진으로 찍어 두세요.</li></ul>
         ${X().move.length ? `<h2 class="bmoveh">이동수단</h2><dl class="bmove">${X().move.map(m => `<div><dt>${esc(m.m)}</dt><dd>${esc(m.d)}</dd></div>`).join("")}</dl>` : ""}
@@ -353,6 +440,7 @@ function placeForm(){
     <label>전화번호<input type="text" id="f-tel" value="${esc(draft.tel || "")}" placeholder="예) +81-92-000-0000" inputmode="tel"></label>
     <label>홈페이지<input type="text" id="f-web" value="${esc(draft.web || "")}" placeholder="https://"></label>
     <label>메모<input type="text" id="f-d" value="${esc(draft.d || "")}" placeholder="무엇이 좋은지, 꼭 먹을 것 등"></label>
+    <label>1인 비용(${money().n}, 모르면 비워 두세요)<input type="text" id="f-cost" value="${esc(draft.cost || "")}" inputmode="decimal"></label>
     <label>수용 인원(명, 모르면 비워 두세요)<input type="text" id="f-cap" value="${esc(draft.cap || "")}" inputmode="numeric"></label>
     <label>머무는 시간(분)<input type="text" id="f-stay" value="${esc(draft.stay)}" inputmode="numeric"></label>
     <div class="btns"><button type="button" class="btn out" data-act="sheet-close">취소</button><button type="button" class="btn pri" data-act="save-place">추가</button></div>`);
@@ -366,7 +454,7 @@ function portForm(){
     ${locHtml()}
     <div class="btns"><button type="button" class="btn out" data-act="sheet-close">취소</button><button type="button" class="btn pri" data-act="save-port">만들기</button></div>`);
 }
-function readDraft(){ ["n", "c", "tn", "tel", "web", "d", "stay", "cat", "q", "cap"].forEach(k => { const el = $("#f-" + k); if(el) draft[k] = el.value.trim(); }); }
+function readDraft(){ ["n", "c", "tn", "tel", "web", "d", "stay", "cat", "q", "cap", "cost"].forEach(k => { const el = $("#f-" + k); if(el) draft[k] = el.value.trim(); }); }
 function reform(){ draft.kind === "port" ? portForm() : placeForm(); }
 async function geocode(){
   readDraft(); const q = draft.q; if(!q){ toast("찾을 이름이나 주소를 적어 주세요."); return; }
@@ -389,6 +477,7 @@ function renderPane(){
   document.querySelectorAll(".tabs button").forEach(b => { const on = b.dataset.tab === tab; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
   $("#cnt").textContent = plan().stops.length;
   $("#pane").innerHTML = { places:paneplaces, tours:panetours, route:paneroute, book:panebook }[tab]();
+  watchPhotos();
 }
 function render(fit){ renderPorts(); renderPane(); drawMap(fit); save(); }
 function refresh(){ renderPane(); drawMap(false); save(); }
@@ -414,12 +503,18 @@ document.addEventListener("click", e => {
     case "opt": optimize(); refresh(); toast("이동이 가장 짧은 순서로 정리했어요."); break;
     case "tour": { const tr = X().tours[+t0i(t)]; if(!tr) return; let n = 0; (tr.stops || []).forEach(sid => { const p = placeById(sid); if(p && !inPlan(sid)){ pl.stops.push({ id:sid, stay:p.stay || 60 }); n++; } });
       optimize(); tab = "route"; refresh(); drawMap(true); const sl = schedule().slack; toast(n ? (sl < 0 ? "담았어요. 다만 귀선 마감을 " + dur(-sl) + " 넘겨요." : n + "곳을 동선에 담았어요.") : "이미 모두 담겨 있어요."); break; }
-    case "cap": { const p = placeById(id); if(!p) return; const c = capOf(p);
-      sheet(`<h2>수용 인원 고치기</h2><p class="lead">${esc(p.n)} · 전화로 확인한 인원을 적어 두면 이 기기에 저장돼요. 야외·공공장소처럼 제한이 없으면 0을 적어 주세요.</p>
-        <label>한 번에 함께 이용할 수 있는 인원(명)<input type="text" id="f-capv" inputmode="numeric" value="${c ? c.n : ""}"></label>
-        <div class="btns"><button type="button" class="btn out" data-act="sheet-close">취소</button>${db.caps[id] != null ? `<button type="button" class="btn out" data-act="cap-reset" data-id="${esc(id)}">어림값으로 되돌리기</button>` : ""}<button type="button" class="btn pri" data-act="cap-save" data-id="${esc(id)}">저장</button></div>`); break; }
-    case "cap-save": { const v = $("#f-capv").value.trim(); if(!/^\d{1,4}$/.test(v)){ toast("숫자로 적어 주세요."); return; } db.caps[id] = +v; closeSheet(); refresh(); toast("수용 인원을 저장했어요."); break; }
-    case "cap-reset": delete db.caps[id]; closeSheet(); refresh(); break;
+    case "cap": { const p = placeById(id); if(!p) return; const c = capOf(p), k = costOf(p), m = money();
+      sheet(`<h2>인원·비용 고치기</h2><p class="lead">${esc(p.n)} · 전화로 확인한 값을 적어 두면 이 기기에 저장돼요.</p>
+        <label>한 번에 함께 이용할 수 있는 인원(명) · 제한 없으면 0<input type="text" id="f-capv" inputmode="numeric" value="${c ? c.n : ""}"></label>
+        <label>1인 비용(${m.n}) · 무료면 0<input type="text" id="f-costv" inputmode="decimal" value="${k ? k.v : ""}"></label>
+        <div class="btns"><button type="button" class="btn out" data-act="sheet-close">취소</button>${db.caps[id] != null || db.costs[id] != null ? `<button type="button" class="btn out" data-act="cap-reset" data-id="${esc(id)}">어림값으로 되돌리기</button>` : ""}<button type="button" class="btn pri" data-act="cap-save" data-id="${esc(id)}">저장</button></div>`); break; }
+    case "cap-save": { const p = placeById(id), v = $("#f-capv").value.trim(), w = $("#f-costv").value.trim().replace(/,/g, "");
+      if((v && !/^\d{1,4}$/.test(v)) || (w && !/^\d+(\.\d+)?$/.test(w))){ toast("숫자로 적어 주세요."); return; }
+      const c0 = capOf(p), k0 = costOf(p);
+      if(v && (!c0 || +v !== c0.n)) db.caps[id] = +v; if(w && (!k0 || +w !== k0.v)) db.costs[id] = +w;
+      closeSheet(); refresh(); toast("저장했어요."); break; }
+    case "cap-reset": delete db.caps[id]; delete db.costs[id]; closeSheet(); refresh(); break;
+    case "photo-del": delete db.photos[id]; refresh(); break;
     case "auto": autoCourse(); tab = "route"; refresh(); drawMap(true); toast(pl.stops.length ? "시간에 맞는 코스를 담았어요. 마음대로 바꿔 보세요." : "시간 안에 들어가는 장소가 없어요. 시각을 확인해 주세요."); break;
     case "clear": pl.stops = []; pl.legs = {}; refresh(); toast("동선을 비웠어요."); break;
     case "share": copy(shareUrl(), "동선 링크를 복사했어요. 카톡에 붙여 넣어 보내세요."); break;
@@ -436,7 +531,7 @@ document.addEventListener("click", e => {
     case "save-place": {
       readDraft(); if(!draft.n){ toast("이름을 적어 주세요."); return; } if(!draft.ll){ toast("위치를 정해 주세요. 찾기나 지도 찍기를 써 보세요."); return; }
       const web = draft.web && !/^https?:\/\//i.test(draft.web) ? "https://" + draft.web : draft.web;
-      const p = { id:uid("c-"), custom:true, cat:draft.cat, n:draft.n, ll:draft.ll, d:draft.d || "", tel:draft.tel || null, web:web || null, cap:/^\d+$/.test(draft.cap || "") ? +draft.cap : null, stay:Math.max(15, Math.min(480, parseInt(draft.stay, 10) || 60)) };
+      const p = { id:uid("c-"), custom:true, cat:draft.cat, n:draft.n, ll:draft.ll, d:draft.d || "", tel:draft.tel || null, web:web || null, cap:/^\d+$/.test(draft.cap || "") ? +draft.cap : null, cost:/^\d+(\.\d+)?$/.test(draft.cost || "") ? +draft.cost : null, stay:Math.max(15, Math.min(480, parseInt(draft.stay, 10) || 60)) };
       (db.custom[db.cur] || (db.custom[db.cur] = [])).push(p); closeSheet(); catFilter = "all"; tab = "places"; refresh(); toast("장소를 추가했어요."); break; }
     case "del-place": db.custom[db.cur] = (db.custom[db.cur] || []).filter(p => p.id !== id); refresh(); toast("장소를 지웠어요."); break;
     case "save-port": {
@@ -451,9 +546,12 @@ document.addEventListener("change", e => {
   if(t.id === "portsel"){ db.cur = t.value; catFilter = "all"; render(true); }
   else if(t.id === "pax"){ const v = Math.max(1, Math.min(999, parseInt(t.value, 10) || 1)); plan().pax = v; refresh(); }
   else if(t.id === "t0" || t.id === "t1"){ if(t.value){ plan()[t.id] = t.value; refresh(); } }
-  else if(t.dataset.info === "qr"){ db.info.qr = t.checked; save(); }
+  else if(t.id === "fx"){ const v = parseFloat(t.value); if(v > 0){ db.fx[money().code] = v; refresh(); } }
+  else if(t.id === "tcost"){ const v = t.value.trim(); if(v === "") delete plan().tcost; else plan().tcost = Math.max(0, Math.round(+v) || 0); refresh(); }
+  else if(t.dataset.photo){ if(t.files && t.files[0]) setPhoto(t.dataset.photo, t.files[0]); }
+  else if(t.type === "checkbox" && t.dataset.info){ db.info[t.dataset.info] = t.checked; save(); }
 });
-document.addEventListener("input", e => { const k = e.target.dataset && e.target.dataset.info; if(k && k !== "qr"){ db.info[k] = e.target.value; save(); } });
+document.addEventListener("input", e => { const k = e.target.dataset && e.target.dataset.info; if(k && e.target.type !== "checkbox"){ db.info[k] = e.target.value; save(); } });
 document.addEventListener("keydown", e => {
   if(e.key === "Enter" && e.target.id === "f-q"){ e.preventDefault(); geocode(); }
   if(e.key === "Escape"){ if(picking) stopPick(); else if(!$("#sheet").hidden) closeSheet(); else if(!$("#book").hidden) closeBook(); }
