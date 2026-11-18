@@ -95,6 +95,9 @@ function viewHome(){
     <div class="rgrid">${Object.entries(REGIONS).map(([k,g])=>`<a class="rcard" href="#/explore?rg=${k}"><img src="${g.img}" alt="" loading="lazy"><div><b>${esc(g.n)}</b><span>${esc(g.sub)}</span></div></a>`).join("")}</div>
   </section>
 
+  <section class="sec"><div class="eyebrow">A day ashore</div><h2>기항지 하루도 직접 짜 보세요</h2><p class="lead">식당·웰니스·카페·휴식·포토 스팟을 골라 지도 위에서 동선을 짜고, 연락처가 담긴 안내 책자로 인쇄할 수 있어요.</p>
+    <a class="btn deep block" href="shore/">기항지 투어 플래너 열기</a></section>
+
   ${saved.length? `<section class="sec"><h2>이어서 보기</h2><p class="lead">이 기기에 저장한 플랜 ${saved.length}개</p><div class="list">${saved.slice(0,2).map(savedRow).join("")}</div></section>`:""}
 
   <section class="sec"><div class="eyebrow">Scarlett's picks</div><h2>스칼렛이 먼저 권하는 일정</h2><p class="lead">처음이라면 여기서 시작해 보세요.</p>

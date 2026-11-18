@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>기항지 투어 플래너 · 크루즈마스터 스칼렛</title>
+<meta name="description" content="짧은 기항 시간을 알차게. 식당·웰니스·카페·휴식·포토 스팟을 골라 지도 위에서 동선을 짜고, 연락처가 담긴 안내 책자까지 만드는 무료 기항지 투어 플래너.">
+<meta property="og:title" content="기항지 하루, 지도 위에서 직접 짜 보세요 · 스칼렛의 기항지 투어 플래너">
+<meta property="og:description" content="식당·웰니스·카페·휴식·포토 스팟을 골라 동선과 시간표를 만들고 안내 책자로 인쇄하세요.">
+<meta property="og:image" content="https://thevipcruise.github.io/cruise-planner/img/og.jpg">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#04465A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,500&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="shore.css">
+</head>
+<body class="shore">
+<header class="top">
+  <a href="../" class="brand" aria-label="크루즈 플래너 홈으로">
+    <span class="mark">ÉCLAT PASSAGE</span>
+    <span class="bname">스칼렛의 <b>기항지 투어 플래너</b></span>
+  </a>
+  <span class="top-links">
+    <a class="top-back" href="../">크루즈 플래너</a>
+    <a class="top-cta" href="https://pf.kakao.com/_yrixbX/chat" target="_blank" rel="noopener">상담</a>
+  </span>
+</header>
+
+<div class="shell">
+  <section class="s-head">
+    <div class="intro">
+      <div class="eyebrow">A day ashore</div>
+      <h1>기항지 하루, 지도 위에서 직접 짜 보세요</h1>
+      <p>가고 싶은 곳을 담으면 순서와 시간표가 만들어져요. 다 짜면 연락처가 담긴 안내 책자로 인쇄할 수 있어요.</p>
+    </div>
+    <div id="ports"></div>
+    <div id="portinfo"></div>
+  </section>
+
+  <section class="s-map" aria-label="지도">
+    <div id="map"></div>
+    <div id="pickbar" hidden><span>지도에서 위치를 눌러 주세요</span><button type="button" data-act="pick-cancel">취소</button></div>
+  </section>
+
+  <section class="s-body">
+    <nav class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="places">장소 고르기</button>
+      <button type="button" role="tab" data-tab="route">내 동선 <b id="cnt">0</b></button>
+      <button type="button" role="tab" data-tab="book">안내 책자</button>
+    </nav>
+    <div id="pane"></div>
+    <p class="fine">장소 정보는 참고용이에요. 영업시간·휴무·요금은 바뀔 수 있으니 방문 전에 전화나 구글 지도로 확인해 주세요. 이동 시간은 직선거리로 어림한 값이라 실제와 다를 수 있어요.</p>
+  </section>
+</div>
+
+<div id="sheet" hidden></div>
+<div id="book" hidden></div>
+<div id="toast" role="status"></div>
+
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="places.js"></script>
+<script src="shore.js"></script>
+</body>
+</html>
